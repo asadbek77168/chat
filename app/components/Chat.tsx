@@ -1,42 +1,42 @@
 "use client";
 
 import { collection, orderBy, query } from "firebase/firestore";
-import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 import Message from "./Message";
-import { firestore } from "../firebase/firebase";
 import HomeContent from "./HomeContent";
+import { firestore, auth } from "../lib/firebase";
 
 type Props = {
   chatId: string;
 };
 
 function Chat({ chatId }: Props) {
-  const { data: session } = useSession();
+  const [user] = useAuthState(auth);
   const messageEndRef = useRef<null | HTMLDivElement>(null);
 
   const [messages] = useCollection(
-    session &&
+    user &&
       query(
         collection(
           firestore,
-          `users/${session?.user?.email!}/chats/${chatId}/messages`
+          `users/${user.email}/chats/${chatId}/messages`
         ),
         orderBy("createdAt", "asc")
       )
   );
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView();
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
       {messages?.empty && (
         <>
-          <HomeContent/>
+          <HomeContent />
         </>
       )}
       {messages?.docs.map((message) => (
