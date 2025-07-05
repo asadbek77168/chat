@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useRouter } from "next/router";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login/signup
+  const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -19,22 +24,31 @@ export default function Login() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      router.push("/chat"); // Redirect after login/signup
+      router.push("/chat");
     } catch (error: any) {
       alert("Xatolik: " + error.message);
+    }
+  };
+
+  // ✅ Google orqali login
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      router.push("/chat");
+    } catch (error: any) {
+      alert("Google login xatoligi: " + error.message);
     }
   };
 
   return (
     <div className="bg-white h-screen flex flex-col items-center justify-center text-center px-4">
       <div className="h-20 w-20 mb-6">
-        {/* LOGO SVG yoki RASM */}
         <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
       </div>
-      <div className="mb-6">
-        <h3 className="text-gray-900 text-2xl font-semibold">ChatGPT Clone’ga xush kelibsiz!</h3>
-        <p className="text-sm text-gray-500">Email orqali tizimga kiring yoki roʻyxatdan oʻting.</p>
-      </div>
+
+      <h3 className="text-2xl font-semibold mb-2">ChatGPT Clone</h3>
+
       <form onSubmit={handleAuth} className="w-full max-w-sm">
         <input
           type="email"
@@ -59,6 +73,7 @@ export default function Login() {
           {isLogin ? "Kirish" : "Roʻyxatdan oʻtish"}
         </button>
       </form>
+
       <p className="text-sm mt-4 text-gray-600">
         {isLogin ? "Akkauntingiz yoʻqmi?" : "Avval ro‘yxatdan o‘tganmisiz?"}{" "}
         <button
@@ -68,6 +83,14 @@ export default function Login() {
           {isLogin ? "Roʻyxatdan oʻting" : "Kirish"}
         </button>
       </p>
+
+      {/* ✅ Google login button */}
+      <button
+        onClick={loginWithGoogle}
+        className="mt-6 px-4 py-2 border rounded-md text-black hover:bg-gray-100"
+      >
+        Google orqali kirish
+      </button>
     </div>
   );
 }
